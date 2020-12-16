@@ -1,0 +1,16 @@
+{
+    "name": "advanced-ui-playground",
+    "version": "0.0.1",
+    "description": "Playground project for learning TypeScript UI coding",
+    "dependencies": {
+        "lit-element": "^2.4.0"
+    },
+    "devDependencies": {
+        "es-dev-server": "^2.0.2"
+    },
+    "scripts": {
+        "build": "tsc",
+        "build:watch": "tsc --watch",
+        "serve": "es-dev-server --app-index public/index.html --node-resolve --watch --open"
+    }
+}

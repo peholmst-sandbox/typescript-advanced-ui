@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "rootDir": "./src",
+        "outDir": "./public",
+        "strict": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true,
+        "plugins": [
+            {
+                "name": "ts-lit-plugin",
+                "strict": true
+            }
+        ],
+    },
+    "include": ["src"],
+    "exclude": [],
+}
