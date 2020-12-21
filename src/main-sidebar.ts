@@ -15,16 +15,14 @@ export class MainSidebar extends LitElement {
         `;
     }
 
-    // TODO Scroll if the menu cannot fit on the screen
-
     render() {
         return html`
             <div>
-                <menu-list variant="sidebar" tabindex="0">
-                    <menu-item title="Ticket"><fa-icon icon="ticket-alt" category="solid"></fa-icon></menu-item>
-                    <menu-item selected title="Globe"><fa-icon icon="globe" category="solid"></fa-icon></menu-item>
-                    <menu-item title="Sitemap"><fa-icon icon="sitemap" category="solid"></fa-icon></menu-item>
-                    <menu-item title="Fire Extinguisher"><fa-icon icon="fire-extinguisher" category="solid"></fa-icon></menu-item>
+                <menu-list variant="sidebar" tabindex="1">
+                    <menu-item title="Ticket" selected @select="${(e: CustomEvent) => {console.log(e.target)}}"><fa-icon icon="ticket-alt" category="solid"></fa-icon></menu-item>
+                    <menu-item title="Globe" @select="${(e: CustomEvent) => {console.log(e.target)}}"><fa-icon icon="globe" category="solid"></fa-icon></menu-item>
+                    <menu-item title="Sitemap" @select="${(e: CustomEvent) => {console.log(e.target)}}"><fa-icon icon="sitemap" category="solid"></fa-icon></menu-item>
+                    <menu-item title="Fire Extinguisher" @select="${(e: CustomEvent) => {console.log(e.target)}}"><fa-icon icon="fire-extinguisher" category="solid"></fa-icon></menu-item>
                 </menu-list>
             </div>
         `;

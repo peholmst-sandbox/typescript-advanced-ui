@@ -1,6 +1,6 @@
 import { css, customElement, html, LitElement, query, property, queryAssignedNodes } from "lit-element";
 
-export type MenuListVariant = "sidebar" | "popup";
+export type MenuListVariant = "sidebar" | "popup"; // TODO Consider splitting up into two subclasses instead
 
 @customElement("menu-list")
 export class MenuList extends LitElement {
@@ -14,16 +14,18 @@ export class MenuList extends LitElement {
             .sidebar ::slotted(menu-item) {
                 padding: 10px 10px;
                 opacity: 0.5;
+                outline: none;
             }
 
-            .sidebar ::slotted(menu-item:hover) {
+            .sidebar ::slotted(menu-item:hover),
+            .sidebar ::slotted(menu-item:focus) {
                 opacity: 1.0;
             }
 
             .sidebar ::slotted(menu-item[selected]) {
-                border-left: 3px white solid;
+                border-left: 3px #ffffff solid;
+                background-color: rgba(255, 255, 255, 0.2);
                 padding-left: 7px;
-                opacity: 1.0;
             }
 
             .popup ::slotted(menu-item) {
@@ -42,29 +44,31 @@ export class MenuList extends LitElement {
     constructor() {
         super();
         this.addEventListener("keydown", this.onKeyDown);
+        this.addEventListener("focus", this.onFocus);
     }
+
+    // TODO Up and down buttons for scrolling instead of ordinary scrollbar
 
     render() {
         return html`
             <div part="up-button"></div>
             <div part="items" class="${this.variant}">
-                <slot></slot>
+                <slot @slotchange="${this.onSlotChange}"></slot>
             </div>
             <div part="down-button"></div>
         `;
     }
 
-    private get items(): MenuItem[] {
+    /**
+     * An array of all the items in the menu.
+     */
+    get items(): MenuItem[] {
         const slot = this.shadowRoot?.querySelector("slot");
         if (!slot) {
             return [];
         }
         const childNodes = slot.assignedNodes({ flatten: true });
         return <MenuItem[]>childNodes.filter((node) => node instanceof MenuItem);
-    }
-
-    private getSelectedItem(): MenuItem | undefined {
-        return this.items.find((item) => item.selected);
     }
 
     private getSibling(item: MenuItem, offset: number = 1): MenuItem {
@@ -82,26 +86,88 @@ export class MenuList extends LitElement {
         return items[sibling];
     }
 
-    private select(item: MenuItem) {
-        const currentSelection = this.getSelectedItem();
+    private selectItem(item: MenuItem) {
+        const currentSelection = this.selectedItem;
+        if (currentSelection === item) {
+            return;
+        }
         if (currentSelection) {
             currentSelection.selected = false;
         }
-        console.log(item);
         item.selected = true;
+        if (item.selected) { // Selection change may have been prevented
+            this.focusItem(item);
+        }
+    }
+
+    /**
+     * The currently selected item or undefined if no item is selected.
+     */
+    get selectedItem(): MenuItem | undefined {
+        return this.items.find((item) => item.selected);
+    }
+
+    private focusItem(item: MenuItem) {
+        const currentFocus = this.focusedItem;
+        if (currentFocus === item) {
+            return;
+        }
+        item.focus();
+    }
+
+    /**
+     * The currently focused item or undefined if no item is focused.
+     */
+    get focusedItem(): MenuItem | undefined {
+        let focusedElement = document.activeElement;
+        // Need to traverse the shadow roots to find the actual active element
+        while (focusedElement?.shadowRoot?.activeElement) {
+            focusedElement = focusedElement.shadowRoot.activeElement;
+        }
+        return this.items.find((item) => item === focusedElement)
     }
 
     private onKeyDown(event: KeyboardEvent) {
-        const selected = this.getSelectedItem();
-        // TODO Actually, it is not the selection that is moving but the focus. Selection should change after you click an item
-        if (selected) {
+        const focused = this.focusedItem;
+        if (focused) {
             if (event.code === "ArrowUp") {
-                this.select(this.getSibling(selected, -1));
+                event.preventDefault();
+                this.focusItem(this.getSibling(focused, -1));
             } else if (event.code === "ArrowDown") {
-                this.select(this.getSibling(selected, 1));
+                event.preventDefault();
+                this.focusItem(this.getSibling(focused, 1));
             } else if (event.code === "Space" || event.code === "Enter") {
-                console.log('space'); // TODO This is where you select an item
+                event.preventDefault();
+                this.selectItem(focused);
             }    
+        }
+    }
+
+    private onFocus(event: FocusEvent) {
+        const currentSelection = this.selectedItem;
+        // Whenever the menu list itself gets focused from the outside world, it is the current selection
+        // that should be focused. If there is no current selection, the first item should be focused.
+        if (currentSelection) {
+            this.focusItem(currentSelection);
+        } else {
+            const items = this.items;
+            if (items.length > 0) {
+                this.focusItem(items[0]);
+            }
+        }
+    }
+
+    private onSlotChange(event: Event) {
+        // TODO Do I need to remove the old listeners or will this leak memory / cause double listeners?
+        this.items.forEach((item) => {
+            item.addEventListener("click", this.onItemClick.bind(this));
+            item.tabIndex = -1;
+        });
+    }
+
+    private onItemClick(event: MouseEvent) {
+        if (event.currentTarget instanceof MenuItem) {
+            this.selectItem(<MenuItem>event.currentTarget);
         }
     }
 }
@@ -123,20 +189,36 @@ export class MenuItem extends LitElement {
         `;
     }
 
-    @property()
-    href!: string;
+    private _selected: boolean = false;
 
     @property({ type: Boolean, reflect: true })
-    selected: boolean = false;
+    get selected(): boolean {
+        return this._selected;
+    }
 
-    // TODO Click listener
-    // TODO Icon
-    // TODO Selected
+    set selected(value: boolean) {
+        const oldValue = this._selected;
+        if (oldValue === value) {
+            return;
+        }
+        this._selected = value;
+        if (this.fireSelectionChangeEvent()) {
+            this.requestUpdate("selected", oldValue);
+        } else {
+            this._selected = oldValue;
+        }
+    }
+
+    private fireSelectionChangeEvent(): boolean {
+       let event = new CustomEvent(this.selected ? "select" : "unselect", {
+           cancelable: true
+       }); 
+       return this.dispatchEvent(event);
+    }
 
     render() {
         return html`
             <div part="menu-item"><slot></slot></div>
         `;
     }
-
 }
