@@ -1,8 +1,11 @@
 import { css, customElement, html, LitElement } from "lit-element";
+import { appContext } from "./utils/app-context";
+import { Router } from "./utils/router";
 
 import "./main-footer";
 import "./main-header";
 import "./main-sidebar";
+
 
 @customElement("main-app")
 export class MainApp extends LitElement {
@@ -28,6 +31,11 @@ export class MainApp extends LitElement {
                 background-color: #1e1e1e;
             }
         `;
+    }
+
+    constructor() {
+        super();
+        appContext().put("router", new Router());
     }
 
     render() {

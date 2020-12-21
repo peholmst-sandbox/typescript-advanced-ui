@@ -1,7 +1,9 @@
-import { css, customElement, html, LitElement } from "lit-element";
+import { css, customElement, html, internalProperty, LitElement } from "lit-element";
+import { inject } from "./utils/app-context";
 
 import "./components/fa-icon";
 import "./components/menu-list";
+import { Router } from "./utils/router";
 
 @customElement("main-sidebar")
 export class MainSidebar extends LitElement {
@@ -15,7 +17,11 @@ export class MainSidebar extends LitElement {
         `;
     }
 
+    @inject({name: "router"})
+    private router?: Router;
+
     render() {
+        console.log(this.router);
         return html`
             <div>
                 <menu-list variant="sidebar" tabindex="1">
