@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "description": "Playground project for learning TypeScript UI coding",
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^5.15.1",
         "lit-element": "^2.4.0"
     },
     "devDependencies": {
@@ -11,6 +12,7 @@
     "scripts": {
         "build": "tsc",
         "build:watch": "tsc --watch",
-        "serve": "es-dev-server --app-index public/index.html --node-resolve --watch --open"
+        "serve": "es-dev-server --app-index public/index.html --node-resolve --watch --open",
+        "copy:assets": "mkdir -p public/assets/fontawesome; cp -R node_modules/@fortawesome/fontawesome-free/sprites/*.svg public/assets/fontawesome"
     }
 }
