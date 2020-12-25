@@ -24,7 +24,7 @@ export class AppContext { // TODO Turn into interface and expose only that?
      * @param object either the object itself or a function that will return the object when needed.
      * @returns the passed in object or function.
      */
-    put(name: string, object: Function | Object): Function | Object {
+    put<T = Function | Object>(name: string, object: T): T {
         if (this._objects[name]) {
             throw new Error(`An object with the name "${name}" already exists in app context "${this.name}"`);
         }

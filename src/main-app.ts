@@ -1,11 +1,14 @@
-import { css, customElement, html, LitElement } from "lit-element";
+import { css, customElement, html, LitElement, query } from "lit-element";
 import { appContext } from "./utils/app-context";
-import { Router } from "./utils/router";
+import { Router, ElementRouteRenderer } from "./utils/router";
+
+// Make the configuration object available in the app context.
+import config from "./app-config";
+appContext().put("config", config);
 
 import "./main-footer";
 import "./main-header";
 import "./main-sidebar";
-
 
 @customElement("main-app")
 export class MainApp extends LitElement {
@@ -33,14 +36,51 @@ export class MainApp extends LitElement {
         `;
     }
 
+    private router: Router;
+
     constructor() {
         super();
-        appContext().put("router", new Router());
+        this.router = appContext()
+            .put("router", new Router())
+            .withRoute({
+                id: "tickets",
+                path: "tickets",
+                tagName: "tickets-view",
+                preNavigate: async () => await import("./views/tickets-view")
+            })
+            .withRoute({
+                id: "resources",
+                path: "resources",
+                tagName: "resources-view",
+                preNavigate: async () => await import("./views/resources-view")
+            })
+            .withRoute({
+                id: "map",
+                path: "map",
+                tagName: "map-view",
+                preNavigate: async () => await import("./views/map-view")
+            })
+            .withRoute({
+                id: "diagnostics",
+                path: "diagnostics",
+                tagName: "diagnostics-view",
+                preNavigate: async () => await import("./views/diagnostics-view")
+            })
+            .withRoute({
+                id: "admin",
+                path: "admin",
+                tagName: "admin-view",
+                preNavigate: async () => await import("./views/admin/admin-view")
+            })
+            .withRenderer(new ElementRouteRenderer(() => (this.shadowRoot!.getElementById("content-container")!)))
+            .attachToWindow(window, config.contextPath);
+            // TODO Error route
+            // TODO Default route
     }
 
     render() {
         return html`
-            <main-header applicationTitle="App Title"></main-header>
+            <main-header applicationTitle="iDispatch Web"></main-header>
             <div id="content-wrapper">
                 <main-sidebar></main-sidebar>
                 <div id="content-container"></div>
@@ -50,4 +90,5 @@ export class MainApp extends LitElement {
     }
 
     // TODO Prevent usage on too small screens
+    // TODO Login and logout
 }
